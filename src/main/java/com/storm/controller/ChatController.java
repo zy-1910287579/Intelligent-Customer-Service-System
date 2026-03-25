@@ -1,5 +1,6 @@
 package com.storm.controller;
 import com.storm.service.VectorDocumentService;
+import com.storm.tools.testTimeTools;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.chat.client.ChatClient;
@@ -60,6 +61,7 @@ public class ChatController {
                 .advisors(a -> a.param(ChatMemory.CONVERSATION_ID, conversationId))
                     .advisors(new SimpleLoggerAdvisor())//此响应方法的增强配置
                 .user(prompt)//开始放入用户问题
+                .tools(new testTimeTools())
                 .stream()//发送请求并获取响应
                 .content();// 从响应中提取文本内容
         return content;

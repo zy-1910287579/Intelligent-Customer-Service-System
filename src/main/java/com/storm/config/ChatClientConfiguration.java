@@ -53,13 +53,14 @@ public class ChatClientConfiguration {
 
     @Bean
     public ChatClient chatClient(OpenAiChatModel openAiChatModel,ChatMemory chatMemory){
-        log.info("正在初始化 ChatClient...使用的 ChatMemory 类型是: {},初始化成功!", chatMemory.getClass().getName());
-        return ChatClient.builder(openAiChatModel)
+        ChatClient chatClient = ChatClient.builder(openAiChatModel)
                 .defaultSystem("你是一个可爱活泼的ai助手")
                 .defaultAdvisors(
                         MessageChatMemoryAdvisor.builder(chatMemory).build()
                 )
                 .build();
+        log.info("普通对话客户端初始化成功!,使用模型为:{}",openAiChatModel.getClass().getName());
+        return chatClient;
     }
     /**ChatMode会根据配置文件自动注入*/
     @Bean
@@ -96,16 +97,15 @@ public class ChatClientConfiguration {
                 .promptTemplate(customPromptTemplate)
                 .build();
 
-        log.info("正在初始化 ChatClient... 使用的 ChatMemory 类型: {}, 启用 RAG 问答顾问",
-                chatMemory.getClass().getName());
-
-        return ChatClient.builder(openAiChatModel)
+        ChatClient ragChatClient = ChatClient.builder(openAiChatModel)
                 .defaultSystem("你是一个可爱活泼的ai助手") // 仍保留 system prompt（可选）
                 .defaultAdvisors(
                         MessageChatMemoryAdvisor.builder(chatMemory).build(),
                         qaAdvisor  // 👈 RAG 顾问放在这里
                 )
                 .build();
+        log.info("rag对话客户端初始化成功!,使用模型为:{}",openAiChatModel.getClass().getName());
+        return ragChatClient;
     }
 
 }

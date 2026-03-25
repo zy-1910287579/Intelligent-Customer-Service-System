@@ -1,6 +1,8 @@
 package com.storm.config;
 
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.document.DocumentTransformer;
+import org.springframework.ai.model.transformer.KeywordMetadataEnricher;
 import org.springframework.ai.model.transformer.SummaryMetadataEnricher;
 import org.springframework.ai.openai.OpenAiChatModel;
 import org.springframework.ai.transformer.splitter.TextSplitter;
@@ -9,34 +11,83 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 import java.util.List;
-
+@Slf4j
 @Configuration
 public class DocumentConfig {
+
+    /*开始引入流水线加工chunk来更进准的实现文本召回*/
+
+    // ========================
+    // 1. 精准文本分割器
+    // ========================
     @Bean
-    public TokenTextSplitter textSplitter() {
-
-
-
+    public TextSplitter textSplitter() {
         /**
          * .withChunkSize(500) 不是“必须严格 500 tokens”，而是“目标大小约 500 tokens”。
          .withPunctuationMarks(...) 的作用就是：为了句子完整，允许 chunk 实际长度偏离 500 —— 可能 480，也可能 520，甚至 600。*/
-        return TokenTextSplitter.builder()
-                .withChunkSize(500)           //
-                .withMinChunkSizeChars(150)   // 最小字符数，避免碎片
-                .withPunctuationMarks(List.of('。', '？', '！', '；', '\n', '.', '?', '!'))
+
+        /**
+         • minChunkLengthToEmbed=50
+         • 更全的标点（含引号、省略号）
+         • maxNumChunks=5000 安全兜底
+         防止噪声 chunk；提升中英文混合文本断句质量；避免内存溢出*/
+
+        TokenTextSplitter textSplitter = TokenTextSplitter.builder()
+                .withChunkSize(500)
+                .withMinChunkSizeChars(150) // 最小字符数，避免碎片
+                .withMaxNumChunks(5000)    // 防止超大文档 OOM,最大块数5000个
+                .withPunctuationMarks(List.of(
+                                '。', '？', '！', '；', '…', '”', '’',
+                                '.', '?', '!', ';', ':', '"', '\'',
+                                '\n'
+                        )
+                )
                 .withKeepSeparator(true)
                 .build();
+        log.info("文本分割器初始化成功!");
+        return textSplitter;
     }
 
-//    @Bean
-//    public DocumentTransformer summaryEnricher(OpenAiChatModel openAiChatModel) {
-//        return new SummaryMetadataEnricher(
-//                openAiChatModel,
-//                List.of(
-//                        SummaryMetadataEnricher.SummaryType.PREVIOUS,
-//                        SummaryMetadataEnricher.SummaryType.CURRENT,
-//                        SummaryMetadataEnricher.SummaryType.NEXT
-//                )
-//        );
-//    }
+    // ========================
+    // 2. 关键词增强器（每 chunk 提取 5 个关键词）
+    // ========================
+    /**
+     * 显式提取 5 个关键词，自动注入 excerpt_keywords
+     * 提升向量检索相关性，支持关键词过滤聚类*/
+    /**@Bean
+    public DocumentTransformer keywordEnricher(OpenAiChatModel openAiChatModel) {
+
+        KeywordMetadataEnricher keywordEnricher = KeywordMetadataEnricher.builder(openAiChatModel)
+                .keywordCount(5)  // 提取 5 个唯一关键词
+                .build();
+        log.info("关键词增强器初始化成功!");
+        return keywordEnricher;
+        // 可选：自定义模板（如需控制格式或语言）
+        // .keywordsTemplate(new PromptTemplate("从以下文本中提取5个中文关键词，用逗号分隔：\n{context_str}"))
+    }*/
+
+    // ========================
+    // 3. 上下文摘要增强器（支持前后文联动）
+    // ========================
+
+    /**
+     * 启用 PREVIOUS/CURRENT/NEXT 三重摘要
+     * 使每个 chunk 具备“上下文感知能力”，极大提升问答连贯性（尤其在长文档中）*/
+    @Bean
+    public DocumentTransformer summaryEnricher(OpenAiChatModel openAiChatModel) {
+        SummaryMetadataEnricher summaryEnricher = new SummaryMetadataEnricher(
+                openAiChatModel,
+                List.of(
+                        SummaryMetadataEnricher.SummaryType.PREVIOUS,
+                        SummaryMetadataEnricher.SummaryType.CURRENT,
+                        SummaryMetadataEnricher.SummaryType.NEXT
+                )
+                // 可选：自定义摘要模板或 MetadataMode
+                // , "请用一句话总结以下内容的核心主题：\n{context_str}"
+                // , MetadataMode.EMBED
+        );
+        log.info("上下文摘要增强器初始化成功!");
+        return summaryEnricher;
+    }
+
 }
