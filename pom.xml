@@ -73,6 +73,12 @@
 
         <dependency>
             <groupId>org.springframework.ai</groupId>
+            <artifactId>spring-ai-rag</artifactId>
+            <!-- 版本号通常由 spring-ai-bom 管理，或者与 spring-ai-core 版本一致 -->
+        </dependency>
+
+        <dependency>
+            <groupId>org.springframework.ai</groupId>
             <artifactId>spring-ai-starter-vector-store-pgvector</artifactId>
         </dependency>
 
