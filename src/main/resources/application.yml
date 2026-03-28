@@ -1,34 +1,31 @@
 spring:
   application:
     name: MySpringAi
-  #?????
+  #database
   datasource:
     url: jdbc:postgresql://localhost:5432/postgres
     username: postgres
     password: 123456
     driver-class-name: org.postgresql.Driver
   ai:
-    openai:
-      base-url: https://dashscope.aliyuncs.com/compatible-mode
-      completions-path: /v1/chat/completions   # ????????
-      api-key: ${OPENAI_API_KEY}
+    dashscope:
+      api-key: ${DASHSCOPE_API_KEY}
       chat:
         options:
-          model: qwen-max
+          model: qwen-plus
           temperature: 0.7
       embedding:
         options:
           model: text-embedding-v3
 
+
     vectorstore:
       pgvector:
-        table-name: document_embeddings     # ????? vector_store
+        table-name: vector_store     # ????? vector_store
         dimensions: 1024                    # ? ???? text-embedding-v3 ??????
         index-type: HNSW                    # ???HNSW ? IVFFLAT
         distance-type: COSINE_DISTANCE      # ???COSINE_DISTANCE, INNER_PRODUCT, EUCLIDEAN_DISTANCE
         max-document-batch-size: 1000
-
-
 
 
 

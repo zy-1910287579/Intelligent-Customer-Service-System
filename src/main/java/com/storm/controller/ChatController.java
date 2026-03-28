@@ -1,4 +1,5 @@
 package com.storm.controller;
+import com.storm.service.RagChatService;
 import com.storm.service.VectorDocumentService;
 import com.storm.tools.testTimeTools;
 import lombok.RequiredArgsConstructor;
@@ -6,6 +7,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.chat.client.advisor.SimpleLoggerAdvisor;
 import org.springframework.ai.chat.memory.ChatMemory;
+import org.springframework.ai.rag.retrieval.search.VectorStoreDocumentRetriever;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -34,7 +36,11 @@ public class ChatController {
     //自己的服务层
     private final VectorDocumentService vectorDocumentService;
     //已配置好的rag对话客户端
-    private final  @Qualifier("ragChatClient") ChatClient ragChatClient;
+    //private final RagChatService ragChatService;
+
+    private final ChatClient ragChatClient;
+
+
     @RequestMapping("talk")
     public String talk(@RequestParam(value = "prompt",defaultValue = "你好") String prompt){
         log.info("用户的提问是:{}",prompt);
@@ -70,58 +76,74 @@ public class ChatController {
     @RequestMapping("ragchat")
     public Flux<String> ragChat(
             @RequestParam(value = "prompt", defaultValue = "你好") String prompt,
-            @RequestParam String conversationId) {
+            @RequestParam String conversationId,
+            @RequestParam String sessionId) {
+
+
+        String filterExpression = String.format("user_id == '%s' AND session_id == '%s'", conversationId, sessionId);
+
+        log.info("当前检索过滤器: {}", filterExpression);
 
         log.info("流式提问 - conversationId: {}, prompt: {}", conversationId, prompt);
 
         return ragChatClient.prompt()
-                .advisors(a -> a.param(ChatMemory.CONVERSATION_ID, conversationId))
-                .advisors(new SimpleLoggerAdvisor()) // 可选：打印完整 prompt 到日志
                 .user(prompt)
+                .advisors(a -> a.param(ChatMemory.CONVERSATION_ID, conversationId+sessionId))
+                .advisors(new SimpleLoggerAdvisor()) // 可选：打印完整 prompt 到日志
+                .advisors(a -> a.param(VectorStoreDocumentRetriever.FILTER_EXPRESSION, filterExpression))
                 .stream()
                 .content();
     }
 
-
     @PostMapping("upload")
-    public ResponseEntity<String> uploadDocument(@RequestParam("file") MultipartFile file) {
+    public ResponseEntity<String> uploadDocument(@RequestParam("file") MultipartFile file,
+     @RequestParam String conversationId, @RequestParam String sessionId) {
         if (file.isEmpty()) {
             return ResponseEntity.badRequest().body("文件为空");
         }
 
-        // 1. 创建临时目录（如果不存在）
-        Path tempDir = Paths.get(System.getProperty("java.io.tmpdir"), "rag-uploads");
+        // 1. 【修改点】定义当前目录下的文件夹路径
+        // "./uploads" 表示在项目运行根目录下创建一个 uploads 文件夹
+        Path uploadDir = Paths.get("./uploads");
+
         try {
-            Files.createDirectories(tempDir);
+            // 2. 【修改点】自动创建目录（如果不存在）
+            // createDirectories 会检查目录是否存在，不存在则创建，包括父目录
+            Files.createDirectories(uploadDir);
         } catch (IOException e) {
-            log.error("创建临时目录失败", e);
-            return ResponseEntity.status(500).body("服务器内部错误：无法创建临时目录");
+            log.error("创建目录失败", e);
+            return ResponseEntity.status(500).body("服务器内部错误：无法创建存储目录");
         }
 
-        // 2. 生成唯一文件名，防止冲突
+        // 3. 生成唯一文件名
         String originalFilename = file.getOriginalFilename();
         String extension = "";
         if (originalFilename != null && originalFilename.contains(".")) {
             extension = originalFilename.substring(originalFilename.lastIndexOf("."));
         }
-        String uniqueFileName = UUID.randomUUID() + extension;
-        Path filePath = tempDir.resolve(uniqueFileName);
+        // 保持 UUID 命名防止冲突
+        String uniqueFileName = conversationId+originalFilename+ extension;
+
+        // 4. 拼接最终的文件完整路径
+        Path filePath = uploadDir.resolve(uniqueFileName);
 
         try {
-            // 3. 保存文件到临时路径
+            // 5. 保存文件
             Files.write(filePath, file.getBytes());
 
-            // 4. 调用服务将文件内容分块并存入向量库
-            vectorDocumentService.ingestFileToVectorStore(filePath.toString());
+            // 6. 调用服务将文件内容分块并存入向量库
+            // 这里传入绝对路径，确保服务能准确找到文件
+            vectorDocumentService.ingestFileToVectorStore(filePath.toAbsolutePath().toString(),originalFilename,conversationId,sessionId);
 
-            // 5. 可选：上传成功后删除临时文件（或保留用于审计）
-            // Files.deleteIfExists(filePath);
+            log.info("文件 {} 成功上传并保存到: {}", originalFilename, filePath.toAbsolutePath());
+            return ResponseEntity.ok("知识库文档上传成功！文件已保存在项目 uploads 目录下。📚✨");
 
-            log.info("文件 {} 成功上传并入库", originalFilename);
-            return ResponseEntity.ok("知识库文档上传成功！猫娘已学习～ 📚✨");
         } catch (Exception e) {
             log.error("文件上传或向量化失败: {}", originalFilename, e);
             return ResponseEntity.status(500).body("上传失败：" + e.getMessage());
         }
-        }
     }
+
+
+
+}

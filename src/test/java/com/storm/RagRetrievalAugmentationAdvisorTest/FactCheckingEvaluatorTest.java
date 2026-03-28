@@ -1,31 +1,27 @@
 package com.storm.RagRetrievalAugmentationAdvisorTest;
 
 /*测试AI应用需要评估生成内容，以确保AI模型没有产生幻觉反应。*/
+import com.alibaba.cloud.ai.dashscope.chat.DashScopeChatModel;
+import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Test;
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.chat.client.advisor.api.Advisor;
 import org.springframework.ai.chat.evaluation.FactCheckingEvaluator;
-import org.springframework.ai.chat.model.ChatModel;
 import org.springframework.ai.evaluation.EvaluationRequest;
 import org.springframework.ai.evaluation.EvaluationResponse;
-import org.springframework.ai.vectorstore.VectorStore;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.test.context.SpringBootTest;
 import java.util.Collections;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 //JUnit 5 不支持测试类用构造器注入！!!!!
 
 
-
+@Slf4j
 @SpringBootTest
 public class FactCheckingEvaluatorTest {
     //已配置好的rag对话客户端
     @Autowired
-    private   @Qualifier("ragChatClient") ChatClient ragChatClient;
-
-    @Autowired
-    private  ChatModel chatModel;
+    private DashScopeChatModel dashScopeChatModel;
     @Autowired//哎呀,单独提取出来用就是舒服!
     private Advisor retrievalAugmentationAdvisor;
 
@@ -35,8 +31,12 @@ public class FactCheckingEvaluatorTest {
 
         String context="";
 
+        log.info("事实核查评估模型初始化成功!,使用模型为:{}", dashScopeChatModel.getClass().getName());
+
+        log.info("被测模型为使用模型为:{}", dashScopeChatModel.getClass().getName());
+
         // 1. 构建 RAG 流程获取响应
-        String claim = ChatClient.builder(chatModel).build()
+        String claim = ChatClient.builder(dashScopeChatModel).build()
                 .prompt(context)
                 .advisors(retrievalAugmentationAdvisor) // 使用 RAG Advisor
                 .call()
@@ -48,7 +48,7 @@ public class FactCheckingEvaluatorTest {
          * 官方文档的示例之所以能运行，是因为它们很可能在同一个包内。
          * 要解决你的问题，最简单且符合设计模式的方法是创建一个继承自 FactCheckingEvaluator 的子类，
          * 并在子类中调用父类的构造方法。*/
-        var factCheckingEvaluator = FactCheckingEvaluator.builder(ChatClient.builder(chatModel)).build();
+        var factCheckingEvaluator = FactCheckingEvaluator.builder(ChatClient.builder(dashScopeChatModel)).build();
 
         // 3. 构建请求 (Context 作为 userText, Claim 作为 responseContent)
         EvaluationRequest evaluationRequest = new EvaluationRequest(context, Collections.emptyList(), claim);

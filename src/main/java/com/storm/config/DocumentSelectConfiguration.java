@@ -24,7 +24,7 @@ public class DocumentSelectConfiguration {
 
     private final VectorStore myPgVectorStore;
 
-    private final ChatModel openAiChatModel;
+    private final ChatModel DashScopeChatModel;
 
     @Bean
     public Advisor questionAnswerAdvisor(){
@@ -62,8 +62,8 @@ public class DocumentSelectConfiguration {
         return  QuestionAnswerAdvisor.builder(myPgVectorStore)
                 //可以通过SearchRequest来限制检索结果，例如设置相似度阈值和返回结果的数量
                 .searchRequest(SearchRequest.builder()
-                        .similarityThreshold(0.5) // 相似度阈值
-                        .topK(2)                  // 最多返回2个片段
+                        .similarityThreshold(0.4) // 相似度阈值
+                        .topK(5)                  // 最多返回2个片段
                         .build())
                 //可以通过PromptTemplate自定义如何将检索到的上下文和用户问题合并
                 .promptTemplate(customPromptTemplate)
@@ -72,20 +72,23 @@ public class DocumentSelectConfiguration {
 
     @Bean
     public Advisor retrievalAugmentationAdvisor(){
+
+
         //方式二: 模块化自定义流程：RetrievalAugmentationAdvisor
         log.info("RetrievalAugmentationAdvisor增强器初始化成功!");
         return RetrievalAugmentationAdvisor.builder()
                 // 1. 检索前：添加查询变换器--三种变换器,使用第二个RewriteQueryTransformer
                 //使用大语言模型重写用户查询，使其更适合目标检索系统（如向量数据库）。
                 .queryTransformers(RewriteQueryTransformer.builder()
-                        .chatClientBuilder(ChatClient.builder(openAiChatModel).build().mutate())
+                        .chatClientBuilder(ChatClient.builder(DashScopeChatModel).build().mutate())
                         .build())
                 // 2. 检索：配置文档检索器,还可以在build()前加其他其他参数--动态过滤表达式--文档连接 (Document Joiner)
                 .documentRetriever(VectorStoreDocumentRetriever.builder()
                         .vectorStore(myPgVectorStore)
-                        .topK(2)
+                        .topK(3)
                         .similarityThreshold(0.50)
                         .build())
+
                 // 3. 检索后：配置查询增强器ContextualQueryAugmenter:
                 //这是生成前的最后一步，它将检索到的文档内容作为上下文，与用户原始查询结合，形成最终的提示词发送给大语言模型。
                 .queryAugmenter(ContextualQueryAugmenter.builder()

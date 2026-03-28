@@ -9,7 +9,7 @@ import org.springframework.context.annotation.Configuration;
 import java.util.List;
 @Slf4j
 @Configuration
-public class DocumentEmbedConfiguration {
+public class DocumentHandlerConfiguration {
 
     /*开始引入流水线加工chunk来更进准的实现文本召回*/
 
@@ -27,13 +27,13 @@ public class DocumentEmbedConfiguration {
          • maxNumChunks=5000 安全兜底
          防止噪声 chunk；提升中英文混合文本断句质量；避免内存溢出*/
         TokenTextSplitter textSplitter = TokenTextSplitter.builder()
-                .withChunkSize(200)
+                .withChunkSize(500)
                 .withMinChunkSizeChars(50) // 最小字符数，避免碎片
                 .withMaxNumChunks(5000)    // 防止超大文档 OOM,最大块数5000个
                 .withPunctuationMarks(List.of(
                                 '。', '？', '！', '；', '…', '”', '’',
-                                '.', '?', '!', ';', ':', '"', '\'',
-                                '\n'
+                                '.', '?', '!', ';', ':', '"', '\''
+
                         )
                 )
                 .withKeepSeparator(true)
