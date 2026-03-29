@@ -11,6 +11,21 @@ import java.util.List;
 @Configuration
 public class DocumentHandlerConfiguration {
 
+    /*
+    TODO 实习被问好例子之一----------------------------2.3步为何运行速度如此之慢???,是什么问题? 怎么解决的?? 学到了什么?
+     1.因为调用大模型次数很多,到底运行时间不合理增加
+     切分  ：   本地计算 → 毫秒级
+     关键词：  4 chunks × 1 次 = 4 次 LLM 调用,因为每一个chunk都需要调用大模型总结关键词,时间是chunk.size()
+     摘要  ：   4 chunks × ~2.5 次 = 10 次 LLM 调用,同理,每个chunk还需要上下文,故时间是大约3*chunk.size()
+     解决方法一:只保留步骤 1+2
+     KeywordMetadataEnricher 对rag价值高（提升检索相关性、支持关键词过滤）
+     SummaryMetadataEnricher 中低（当前摘要有用，prev/next 在预处理阶段几乎无用）	切耗时极高（2~3×N 次调用）
+     并且将每块关键词改为一个!
+     解决方法二:RetrievalAugmentationAdvisor使用,它提供了更灵活和强大的 RAG 实现--
+     --如查询转换、文档检索、文档后处理、查询增强等）来构建定制化的 RAG 流程。
+     */
+
+
     /*开始引入流水线加工chunk来更进准的实现文本召回*/
 
     // ========================

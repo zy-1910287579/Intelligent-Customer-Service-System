@@ -74,6 +74,7 @@ public class DocumentSelectConfiguration {
     public Advisor retrievalAugmentationAdvisor(){
 
 
+
         //方式二: 模块化自定义流程：RetrievalAugmentationAdvisor
         log.info("RetrievalAugmentationAdvisor增强器初始化成功!");
         return RetrievalAugmentationAdvisor.builder()

@@ -1,7 +1,7 @@
 package com.storm.service.impl;
 
 import com.storm.mapper.VectorDocumentMapper;
-import com.storm.service.MyBatisDocumentService;
+import com.storm.service.VectorDocumentManagerService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -11,7 +11,7 @@ import java.util.List;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class MyBatisDocumentServiceImpl implements MyBatisDocumentService {
+public class VectorDocumentManagerServiceImpl implements VectorDocumentManagerService {
 
     private final VectorDocumentMapper vectorDocumentMapper;
 
@@ -61,6 +61,7 @@ public class MyBatisDocumentServiceImpl implements MyBatisDocumentService {
             throw e;
         }
     }
+
 
 
     @Override

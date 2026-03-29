@@ -3,7 +3,7 @@ package com.storm.service;
 
 import java.util.List;
 
-public interface MyBatisDocumentService {
+public interface VectorDocumentManagerService {
 
     /**
      * 根据物理主键 ID 列表批量删除文档
