@@ -2,11 +2,27 @@ spring:
   application:
     name: MySpringAi
   #database
+
+  jackson:
+    time-zone: GMT+8 # 或者 Asia/Shanghai，确保与你的期望时区一致
+    date-format: yyyy-MM-dd HH:mm:ss
+    # 重要：在序列化时，将 Date, LocalDateTime 等时间对象格式化为字符串，而不是时间戳数字
+    serialization:
+      write-dates-as-timestamps: false
   datasource:
-    url: jdbc:postgresql://localhost:5432/postgres
+    url: jdbc:postgresql://localhost:5432/postgres?stringtype=unspecified&timezone=Asia/Shanghai
     username: postgres
     password: 123456
     driver-class-name: org.postgresql.Driver
+
+    hikari:
+      data-source-properties:
+        stringtype: unspecified # 某些 PostgreSQL 驱动需要这个
+
+    # 最关键的配置，告诉 JDBC 驱动如何处理时间类型
+  sql:
+    init:
+      platform: postgresql
   ai:
     dashscope:
       api-key: ${DASHSCOPE_API_KEY}
@@ -24,9 +40,14 @@ spring:
         dimensions: 1024                    # ? ???? text-embedding-v3 ??????
         index-type: HNSW                    # ???HNSW ? IVFFLAT
         distance-type: COSINE_DISTANCE      # ???COSINE_DISTANCE, INNER_PRODUCT, EUCLIDEAN_DISTANCE
-        max-document-batch-size: 1000
-
-
+        max-document-batch-size: 1000     #每批次的最大文档数
+#最好还是配一下设置,mp默认扫描不到xml
+mybatis-plus:
+  mapper-locations: classpath*:com/**/mapper/**/*.xml
+  type-aliases-package: com.storm.entity
+  configuration:
+    map-underscore-to-camel-case: true
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
 
 
     #????????????,???????

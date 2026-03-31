@@ -1,7 +1,7 @@
 package com.storm.controller;
 
 import com.storm.entity.Result;
-import com.storm.service.ChatHistoryService;
+import com.storm.ai.rag.service.ChatHistoryService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.DeleteMapping;

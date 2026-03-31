@@ -1,7 +1,7 @@
 package com.storm.controller;
 import com.storm.entity.Result;
-import com.storm.service.VectorDocumentManagerService;
-import com.storm.service.TransformDocumentToVectorService;
+import com.storm.ai.rag.service.VectorDocumentManagerService;
+import com.storm.ai.rag.service.TransformDocumentToVectorService;
 import io.swagger.v3.oas.annotations.parameters.RequestBody;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

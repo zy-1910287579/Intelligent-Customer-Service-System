@@ -1,4 +1,4 @@
-package com.storm.config;
+package com.storm.ai.rag.config;
 import com.alibaba.cloud.ai.dashscope.chat.DashScopeChatModel;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

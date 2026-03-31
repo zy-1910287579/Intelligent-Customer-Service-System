@@ -1,10 +1,10 @@
 // package com.storm.service;
-package com.storm.service.impl;
+package com.storm.ai.rag.service.impl;
 
 import com.storm.dto.ChatHistoryItem;
 import com.storm.mapper.OurChatHistoryMapper;
-import com.storm.repository.MyChatHistoryRepository;
-import com.storm.service.ChatHistoryService;
+import com.storm.ai.rag.repository.MyChatHistoryRepository;
+import com.storm.ai.rag.service.ChatHistoryService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.chat.memory.ChatMemory;

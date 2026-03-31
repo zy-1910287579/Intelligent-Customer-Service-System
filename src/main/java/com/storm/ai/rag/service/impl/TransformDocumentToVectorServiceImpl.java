@@ -1,8 +1,7 @@
-package com.storm.service.impl;
+package com.storm.ai.rag.service.impl;
 
 
-import com.storm.service.VectorDocumentManagerService;
-import com.storm.service.TransformDocumentToVectorService;
+import com.storm.ai.rag.service.TransformDocumentToVectorService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.document.Document;
@@ -11,7 +10,6 @@ import org.springframework.ai.reader.tika.TikaDocumentReader;
 import org.springframework.ai.vectorstore.pgvector.PgVectorStore;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.io.Resource;
-import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;

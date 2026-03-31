@@ -1,5 +1,5 @@
 // package com.storm.repository 或 service 包下
-package com.storm.repository;
+package com.storm.ai.rag.repository;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;

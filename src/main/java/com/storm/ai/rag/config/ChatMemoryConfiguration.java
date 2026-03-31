@@ -1,4 +1,4 @@
-package com.storm.config;
+package com.storm.ai.rag.config;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

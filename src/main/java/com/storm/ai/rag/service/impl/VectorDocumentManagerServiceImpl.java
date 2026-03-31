@@ -1,7 +1,7 @@
-package com.storm.service.impl;
+package com.storm.ai.rag.service.impl;
 
 import com.storm.mapper.VectorDocumentMapper;
-import com.storm.service.VectorDocumentManagerService;
+import com.storm.ai.rag.service.VectorDocumentManagerService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;

@@ -1,4 +1,4 @@
-package com.storm.config;
+package com.storm.ai.rag.config;
 import com.alibaba.cloud.ai.transformer.splitter.RecursiveCharacterTextSplitter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.document.DocumentTransformer;
