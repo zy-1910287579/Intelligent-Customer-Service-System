@@ -6,6 +6,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.chat.client.advisor.api.Advisor;
 import org.springframework.ai.chat.evaluation.RelevancyEvaluator;
+import org.springframework.ai.chat.memory.ChatMemory;
 import org.springframework.ai.chat.model.ChatResponse;
 import org.springframework.ai.evaluation.EvaluationRequest;
 import org.springframework.ai.evaluation.EvaluationResponse;
@@ -26,15 +27,19 @@ public class RelevancyEvaluatorTest {
     @Test
     void testRagResponseAccuracy(){
         // 1. 准备问题
-        String question = "毕马威的全球调研显示了什么?";
+        String question = "调研方法有几种?";
         log.info("相关性评估模型初始化成功!,使用模型为:{}", dashScopeChatModel.getClass().getName());
 
         log.info("被测模型为使用模型为:{}", dashScopeChatModel.getClass().getName());
+
+        String userId="user_A";
+        String sessionId="rag_001";
 
 
         // 1. 构建 RAG 流程获取响应
         ChatResponse chatResponse = ChatClient.builder(dashScopeChatModel).build()
                 .prompt(question)
+                .advisors(a -> a.param(ChatMemory.CONVERSATION_ID, userId+"_"+sessionId))
                 .advisors(retrievalAugmentationAdvisor) // 使用 RAG Advisor
                 .call()
                 .chatResponse();
@@ -47,6 +52,9 @@ public class RelevancyEvaluatorTest {
                 chatResponse.getMetadata().get(RetrievalAugmentationAdvisor.DOCUMENT_CONTEXT), //被检索到的上下文
                 chatResponse.getResult().getOutput().getText() // AI 单纯的回答,和.call().content()一样
         );
+
+        System.out.println("用户的问题是:"+question);
+        System.out.println("Ai的回答是:"+chatResponse.getResult().getOutput().getText());
 
         // 3. 执行评估
         RelevancyEvaluator evaluator = new RelevancyEvaluator(ChatClient.builder(dashScopeChatModel));

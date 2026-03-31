@@ -7,6 +7,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.chat.client.advisor.api.Advisor;
 import org.springframework.ai.chat.evaluation.FactCheckingEvaluator;
+import org.springframework.ai.chat.memory.ChatMemory;
 import org.springframework.ai.evaluation.EvaluationRequest;
 import org.springframework.ai.evaluation.EvaluationResponse;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -29,7 +30,10 @@ public class FactCheckingEvaluatorTest {
     @Test
     void testRagResponseAccuracy(){
 
-        String context="";
+        String context="3-12岁的儿童存在的主要问题?";
+
+        String userId="user_A";
+        String sessionId="rag_001";
 
         log.info("事实核查评估模型初始化成功!,使用模型为:{}", dashScopeChatModel.getClass().getName());
 
@@ -38,6 +42,7 @@ public class FactCheckingEvaluatorTest {
         // 1. 构建 RAG 流程获取响应
         String claim = ChatClient.builder(dashScopeChatModel).build()
                 .prompt(context)
+                .advisors(a -> a.param(ChatMemory.CONVERSATION_ID, userId+"_"+sessionId))
                 .advisors(retrievalAugmentationAdvisor) // 使用 RAG Advisor
                 .call()
                 .content();
@@ -52,6 +57,10 @@ public class FactCheckingEvaluatorTest {
 
         // 3. 构建请求 (Context 作为 userText, Claim 作为 responseContent)
         EvaluationRequest evaluationRequest = new EvaluationRequest(context, Collections.emptyList(), claim);
+
+        System.out.println("用户的问题是:"+context);
+        System.out.println("Ai的回答是:"+claim);
+
 
 // 4. 执行评估
         EvaluationResponse evaluationResponse = factCheckingEvaluator.evaluate(evaluationRequest);

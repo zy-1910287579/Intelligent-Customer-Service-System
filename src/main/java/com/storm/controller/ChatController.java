@@ -1,25 +1,17 @@
 package com.storm.controller;
-import com.storm.service.impl.TransformDocumentToVectorServiceImpl;
 import com.storm.tools.testTimeTools;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.glassfish.jaxb.core.v2.TODO;
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.chat.client.advisor.SimpleLoggerAdvisor;
 import org.springframework.ai.chat.memory.ChatMemory;
 import org.springframework.ai.rag.retrieval.search.VectorStoreDocumentRetriever;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.multipart.MultipartFile;
 import reactor.core.publisher.Flux;
-
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -31,8 +23,6 @@ public class ChatController {
     //无论哪种情况，你都需要通过设置属性 来禁用自动配置。ChatClient.Builderspring.ai.chat.client.enabled=false
     //已配置好的对话客户端
     private final @Qualifier("chatClient") ChatClient  chatClient;
-    //自己的服务层
-    private final TransformDocumentToVectorServiceImpl transformDocumentToVectorServiceImpl;
     //已配置好的rag对话客户端
     //private final RagChatService ragChatService;
 
@@ -71,6 +61,14 @@ public class ChatController {
                 .content();// 从响应中提取文本内容
         return content;
     }
+    /*
+    TODO 后期可能会实现单窗口支持多文件问答功能,(@文件名+后端解析文件名并过滤参数)
+     目前入库阶段:从普通tokens切分-->递归符号切分,
+     出库检索功能:从普通QuestionAnswerAdvisor-->retrievalAugmentationAdvisor模块化优化检索流程
+     上述改善已对rag检索回答功能已有很大改善
+     进阶:1.可能语义分割会更好?
+         2.实现普通对话和rag智能识别切换?
+     */
 
     @RequestMapping("ragchat")
     public Flux<String> ragChat(

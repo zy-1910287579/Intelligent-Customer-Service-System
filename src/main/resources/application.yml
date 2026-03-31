@@ -18,7 +18,6 @@ spring:
         options:
           model: text-embedding-v3
 
-
     vectorstore:
       pgvector:
         table-name: vector_store     # ????? vector_store
@@ -26,6 +25,7 @@ spring:
         index-type: HNSW                    # ???HNSW ? IVFFLAT
         distance-type: COSINE_DISTANCE      # ???COSINE_DISTANCE, INNER_PRODUCT, EUCLIDEAN_DISTANCE
         max-document-batch-size: 1000
+
 
 
 
@@ -46,3 +46,4 @@ logging:
     #开启Spring AI 的 PgVectorStore 在执行 similaritySearch 时，
     #会记录检索到的文档（含内容和分数），只需开启日志级别。
     org.springframework.ai.vectorstore.pgvector.PgVectorStore: DEBUG
+

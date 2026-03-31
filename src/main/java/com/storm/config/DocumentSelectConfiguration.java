@@ -7,6 +7,7 @@ import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.chat.client.advisor.api.Advisor;
 import org.springframework.ai.chat.client.advisor.vectorstore.QuestionAnswerAdvisor;
 import org.springframework.ai.chat.model.ChatModel;
+import org.springframework.ai.chat.prompt.ChatOptions;
 import org.springframework.ai.chat.prompt.PromptTemplate;
 import org.springframework.ai.rag.advisor.RetrievalAugmentationAdvisor;
 import org.springframework.ai.rag.generation.augmentation.ContextualQueryAugmenter;
@@ -73,6 +74,13 @@ public class DocumentSelectConfiguration {
     @Bean
     public Advisor retrievalAugmentationAdvisor(){
 
+        // 为 Query Transformation 创建低温度的 ChatClient
+        ChatClient lowTempChatClient = ChatClient.builder(DashScopeChatModel)
+                .defaultOptions(ChatOptions.builder()
+                        .temperature(0.0)
+                        .build())
+                .build();
+
 
 
         //方式二: 模块化自定义流程：RetrievalAugmentationAdvisor
@@ -81,13 +89,14 @@ public class DocumentSelectConfiguration {
                 // 1. 检索前：添加查询变换器--三种变换器,使用第二个RewriteQueryTransformer
                 //使用大语言模型重写用户查询，使其更适合目标检索系统（如向量数据库）。
                 .queryTransformers(RewriteQueryTransformer.builder()
-                        .chatClientBuilder(ChatClient.builder(DashScopeChatModel).build().mutate())
+                        .chatClientBuilder(lowTempChatClient.mutate())
                         .build())
+
                 // 2. 检索：配置文档检索器,还可以在build()前加其他其他参数--动态过滤表达式--文档连接 (Document Joiner)
                 .documentRetriever(VectorStoreDocumentRetriever.builder()
                         .vectorStore(myPgVectorStore)
-                        .topK(3)
-                        .similarityThreshold(0.50)
+                        .topK(20)
+                        .similarityThreshold(0.4)
                         .build())
 
                 // 3. 检索后：配置查询增强器ContextualQueryAugmenter:

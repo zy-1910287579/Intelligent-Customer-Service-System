@@ -26,12 +26,7 @@ public class TransformDocumentToVectorServiceImpl implements TransformDocumentTo
 
     /*!!!!!!!!!!!!!!!!!!!!!!!!这里我将使用模型评估来检测rag功能!!!!!!!!!!!!!!!!!!!!!2026-3-25*/
     private final PgVectorStore vectorStore;
-    private final DocumentTransformer  tokenTextSplitter;
-    /**private final DocumentTransformer summaryEnricher;*/
-
-    private final VectorDocumentManagerService vectorDocumentManagerService;
-
-    private final JdbcTemplate jdbcTemplate; // 注入 JdbcTemplate
+    private final DocumentTransformer recursiveSplitter;
 
     public List<Document> loadAndSplit(String filePath,String originalFilename,String userId,String sessionId) {
         Resource resource = new FileSystemResource(filePath);
@@ -59,7 +54,7 @@ public class TransformDocumentToVectorServiceImpl implements TransformDocumentTo
 
 
         //2.切分
-        List<Document> chunks = tokenTextSplitter.apply(rawDocs);
+        List<Document> chunks = recursiveSplitter.apply(rawDocs);
         List<Document> processedDocs = new ArrayList<>();
 
         // 遍历分块后列表，使用 mutate() 修改元数据
