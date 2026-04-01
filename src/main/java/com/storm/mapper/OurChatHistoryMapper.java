@@ -7,7 +7,7 @@ import org.springframework.ai.chat.memory.ChatMemory;
 import java.util.List;
 
 @Mapper
-public interface OurChatHistoryMapper {
+public interface OurChatHistoryMapper  {
 
     /**
      * 插入一条对话历史记录

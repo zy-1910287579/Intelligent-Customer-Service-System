@@ -1,8 +1,8 @@
-package com.storm.service.impl;
+package com.storm.ai.rag.service.impl;
 
 
-import com.storm.service.VectorDocumentManagerService;
-import com.storm.service.TransformDocumentToVectorService;
+import com.storm.ai.rag.service.TransformDocumentToVectorService;
+import com.storm.common.constants.AppConstants;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.document.Document;
@@ -11,7 +11,6 @@ import org.springframework.ai.reader.tika.TikaDocumentReader;
 import org.springframework.ai.vectorstore.pgvector.PgVectorStore;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.io.Resource;
-import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -50,8 +49,6 @@ public class TransformDocumentToVectorServiceImpl implements TransformDocumentTo
         *  3.看Document源码并结合ai解答成功解决了问题!!!!!哦耶
         *  4.有多种解决方案,我选择了最合适的哪一个,先给所有文档加元数据再分块
         * */
-
-
 
         //2.切分
         List<Document> chunks = recursiveSplitter.apply(rawDocs);
@@ -105,8 +102,7 @@ public class TransformDocumentToVectorServiceImpl implements TransformDocumentTo
         List<Document> documents = loadAndSplit(filePath,originalFilename,userId,sessionId);
 
         log.info("🚀 开始存入向量库，共 {} 块", documents.size());
-        //TODO 这里不能写死数字
-        addDocumentsInBatches(documents, 10); //
+        addDocumentsInBatches(documents, AppConstants.RAG_MAX_BATCH_SIZES); //
     }
     //原check辅助方法已删除,移交mybatisService层
     /**

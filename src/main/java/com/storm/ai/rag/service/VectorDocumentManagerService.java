@@ -1,4 +1,4 @@
-package com.storm.service;
+package com.storm.ai.rag.service;
 
 
 import java.util.List;

@@ -1,5 +1,6 @@
-package com.storm.config;
+package com.storm.ai.rag.config;
 import com.alibaba.cloud.ai.transformer.splitter.RecursiveCharacterTextSplitter;
+import com.storm.common.constants.AppConstants;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.document.DocumentTransformer;
 import org.springframework.ai.transformer.splitter.TokenTextSplitter;
@@ -24,15 +25,7 @@ public class DocumentHandlerConfiguration {
      解决方法二:RetrievalAugmentationAdvisor使用,它提供了更灵活和强大的 RAG 实现--
      --如查询转换、文档检索、文档后处理、查询增强等）来构建定制化的 RAG 流程。
      */
-    @Value("${spring.ai.dashscope.api-key}")
-    private String dashScopeApiKey;
-
-    @Value("${spring.ai.dashscope.base-url:https://dashscope.aliyuncs.com/api/v1/}")
-    private String dashScopeBaseUrl;
     /*开始引入流水线加工chunk来更进准的实现文本召回*/
-
-
-
     @Bean
     public DocumentTransformer recursiveSplitter(){
         // 定义分隔符数组，优先级从高到低
@@ -50,11 +43,11 @@ public class DocumentHandlerConfiguration {
 
         // 创建阿里云的 RecursiveCharacterTextSplitter 实例
         RecursiveCharacterTextSplitter recursiveSplitter = new RecursiveCharacterTextSplitter(
-                1000, // chunkSize
+                AppConstants.RAG_CHUNK_SIZE, // chunkSize
                 separators // separators
         );
 
-        log.info("阿里云 RecursiveCharacterTextSplitter 初始化成功! ChunkSize: {}", 500);
+        log.info("阿里云 RecursiveCharacterTextSplitter 初始化成功! ChunkSize: {}", AppConstants.RAG_CHUNK_SIZE);
         return recursiveSplitter;
     }
 
@@ -73,9 +66,9 @@ public class DocumentHandlerConfiguration {
          • maxNumChunks=5000 安全兜底
          防止噪声 chunk；提升中英文混合文本断句质量；避免内存溢出*/
         TokenTextSplitter textSplitter = TokenTextSplitter.builder()
-                .withChunkSize(500)
-                .withMinChunkSizeChars(50) // 最小字符数，避免碎片
-                .withMaxNumChunks(5000)    // 防止超大文档 OOM,最大块数5000个
+                .withChunkSize(AppConstants.RAG_CHUNK_SIZE)
+                .withMinChunkSizeChars(AppConstants.RAG_MIN_CHUNK_SIZE_CHARS) // 最小字符数，避免碎片
+                .withMaxNumChunks(AppConstants.RAG_MAX_NUM_CHUNKS)    // 防止超大文档 OOM,最大块数5000个
                 .withPunctuationMarks(List.of(
                                 '。', '？', '！', '；', '…', '”', '’',
                                 '.', '?', '!', ';', ':', '"', '\''
