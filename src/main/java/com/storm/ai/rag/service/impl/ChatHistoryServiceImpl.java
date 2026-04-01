@@ -1,6 +1,7 @@
 // package com.storm.service;
 package com.storm.ai.rag.service.impl;
 
+import com.storm.common.constants.AppConstants;
 import com.storm.dto.ChatHistoryItem;
 import com.storm.mapper.OurChatHistoryMapper;
 import com.storm.ai.rag.repository.MyChatHistoryRepository;
@@ -42,7 +43,7 @@ public class ChatHistoryServiceImpl implements ChatHistoryService {
             MyChatHistoryRepository.RawMessage current = rawMessages.get(i);
 
             // 只处理用户消息作为一轮对话的起点
-            if ("USER".equals(current.getType())) {
+            if (AppConstants.USER.equals(current.getType())) {
                 ChatHistoryItem item = new ChatHistoryItem();
                 item.setUserMessage(current.getContent());
                 item.setTimestamp(current.getTimestamp());
@@ -51,7 +52,7 @@ public class ChatHistoryServiceImpl implements ChatHistoryService {
                 String aiContent = "[回复生成中...]";
                 if (i + 1 < rawMessages.size()) {
                     MyChatHistoryRepository.RawMessage next = rawMessages.get(i + 1);
-                    if ("ASSISTANT".equals(next.getType())) {
+                    if (AppConstants.ASSISTANT.equals(next.getType())) {
                         aiContent = next.getContent();
                         i++; // 跳过已配对的 AI 消息
                     }

@@ -1,6 +1,7 @@
 package com.storm.ai.rag.config;
 
 
+import com.storm.common.constants.AppConstants;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.chat.client.ChatClient;
@@ -63,8 +64,8 @@ public class DocumentSelectConfiguration {
         return  QuestionAnswerAdvisor.builder(myPgVectorStore)
                 //可以通过SearchRequest来限制检索结果，例如设置相似度阈值和返回结果的数量
                 .searchRequest(SearchRequest.builder()
-                        .similarityThreshold(0.4) // 相似度阈值
-                        .topK(5)                  // 最多返回2个片段
+                        .similarityThreshold(AppConstants.RAG_SIMILARITY_THRESHOLD) // 相似度阈值
+                        .topK(AppConstants.RAG_TOP_K)                  // 最多返回2个片段
                         .build())
                 //可以通过PromptTemplate自定义如何将检索到的上下文和用户问题合并
                 .promptTemplate(customPromptTemplate)
@@ -77,7 +78,7 @@ public class DocumentSelectConfiguration {
         // 为 Query Transformation 创建低温度的 ChatClient
         ChatClient lowTempChatClient = ChatClient.builder(DashScopeChatModel)
                 .defaultOptions(ChatOptions.builder()
-                        .temperature(0.0)
+                        .temperature(AppConstants.AI_TEMPERATURE)
                         .build())
                 .build();
 
@@ -95,14 +96,14 @@ public class DocumentSelectConfiguration {
                 // 2. 检索：配置文档检索器,还可以在build()前加其他其他参数--动态过滤表达式--文档连接 (Document Joiner)
                 .documentRetriever(VectorStoreDocumentRetriever.builder()
                         .vectorStore(myPgVectorStore)
-                        .topK(20)
-                        .similarityThreshold(0.4)
+                        .topK(AppConstants.RAG_TOP_K)
+                        .similarityThreshold(AppConstants.RAG_SIMILARITY_THRESHOLD)
                         .build())
 
                 // 3. 检索后：配置查询增强器ContextualQueryAugmenter:
                 //这是生成前的最后一步，它将检索到的文档内容作为上下文，与用户原始查询结合，形成最终的提示词发送给大语言模型。
                 .queryAugmenter(ContextualQueryAugmenter.builder()
-                        .allowEmptyContext(true)
+                        .allowEmptyContext(AppConstants.RAG_ALLOW_EMPTY_CONTEXT)
                         .build())
                 .build();
     }

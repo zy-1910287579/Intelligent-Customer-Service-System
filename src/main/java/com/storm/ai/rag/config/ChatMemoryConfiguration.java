@@ -1,5 +1,6 @@
 package com.storm.ai.rag.config;
 
+import com.storm.common.constants.AppConstants;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.chat.memory.ChatMemory;
@@ -22,9 +23,6 @@ public class ChatMemoryConfiguration {
 
 
     private  final JdbcChatMemoryRepository jdbcChatMemoryRepository;
-    //TODO 后期用常量类
-    private final static int maxMessages=20;
-
     @Bean
     public ChatMemory chatMemory(){
         log.info("对话记忆初始化成功!");
@@ -36,7 +34,7 @@ public class ChatMemoryConfiguration {
          * */
          return  MessageWindowChatMemory.builder()
                 .chatMemoryRepository(jdbcChatMemoryRepository)
-                .maxMessages(maxMessages)
+                .maxMessages(AppConstants.AI_MAX_MESSAGES)
                 .build();
     }
 }

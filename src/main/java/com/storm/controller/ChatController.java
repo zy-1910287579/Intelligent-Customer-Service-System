@@ -1,6 +1,7 @@
 package com.storm.controller;
 import com.storm.service.OrderService;
 import com.storm.tools.*;
+import jakarta.validation.constraints.NotBlank;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.glassfish.jaxb.core.v2.TODO;
@@ -9,6 +10,7 @@ import org.springframework.ai.chat.client.advisor.SimpleLoggerAdvisor;
 import org.springframework.ai.chat.memory.ChatMemory;
 import org.springframework.ai.rag.retrieval.search.VectorStoreDocumentRetriever;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -18,6 +20,7 @@ import reactor.core.publisher.Flux;
 @RequiredArgsConstructor
 @RequestMapping("ai")
 @RestController
+@Validated
 public class ChatController {
 
     //默认情况下，Spring AI 会自动配置单个豆子。 不过，你可能需要在申请中同时使用多个聊天模型。 以下是处理这种情况的方法：ChatClient.Builder
@@ -53,7 +56,8 @@ public class ChatController {
     //produces = "text/plain;charset=UTF-8"可以防止前端乱码
     @RequestMapping(value = "chat",produces = "text/plain;charset=UTF-8")
     public Flux<String> chat(@RequestParam(value = "prompt",defaultValue = "你好") String prompt,
-                             @RequestParam String userId,@RequestParam String sessionId){
+                             @NotBlank(message = "用户ID不能为空")@RequestParam String userId,
+                             @NotBlank(message = "会话ID不能为空") @RequestParam String sessionId){
         // TODO 上线前：替换为真实用户ID（如从JWT获取）
         log.info("用户的提问是:{}",prompt);
         //其实你可以这样理解,配置类的链式调用是在配初始化参数,而这里的就是在和ai对话了
@@ -78,8 +82,8 @@ public class ChatController {
     @RequestMapping("ragchat")
     public Flux<String> ragChat(
             @RequestParam(value = "prompt", defaultValue = "你好") String prompt,
-            @RequestParam String userId,
-            @RequestParam String sessionId) {
+            @NotBlank(message = "用户ID不能为空")@RequestParam String userId,
+            @NotBlank(message = "会话ID不能为空")@RequestParam String sessionId) {
 
 
         String filterExpression = String.format("user_id == '%s' AND session_id == '%s'", userId, sessionId);
